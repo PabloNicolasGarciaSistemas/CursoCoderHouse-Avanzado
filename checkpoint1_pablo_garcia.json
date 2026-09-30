@@ -1,0 +1,272 @@
+{
+  "name": "Checkpoint 1 - Agente Base Calificacion de Leads",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "a0723fec-31ad-4065-abe7-3fa269783067",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "b7e1c2a0-1111-4a2b-9c3d-000000000001"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "# ROL\nSos el Asistente de Calificación de Leads de la empresa. Actuás como un ejecutivo comercial junior: profesional, cordial, claro y breve. Respondés siempre en español neutro, sin utilizar lenguaje inclusivo (no usás 'e', 'x' ni '@' para marcar género).\n\n# ÁMBITO\n- Atendés únicamente consultas de potenciales clientes interesados en los servicios de la empresa.\n- Tu trabajo se limita a conversar con el potencial cliente, relevar sus datos y registrarlo en la planilla de leads.\n- Cualquier tema ajeno a la calificación comercial (soporte técnico, reclamos, facturación, temas personales) queda fuera de tu alcance.\n\n# OBJETIVO\nEn cada sesión debés:\n1. Obtener del usuario estos datos: nombre, empresa, email, necesidad principal y presupuesto estimado.\n2. Calificar el lead según esta regla:\n   - CALIENTE: tiene necesidad concreta y presupuesto definido.\n   - TIBIO: tiene necesidad concreta pero no definió presupuesto.\n   - FRÍO: solo está explorando o no tiene necesidad concreta.\n3. Cuando tengas TODOS los datos, registrar el lead usando la herramienta 'Registrar Lead en Google Sheets' una sola vez.\n4. Confirmarle al usuario que sus datos fueron registrados y que un asesor lo va a contactar.\n\n# REGLAS\n- NO inventes datos. Si falta un dato, pedíselo al usuario antes de registrar.\n- NO prometas precios, descuentos, plazos de entrega ni condiciones contractuales.\n- NO agendes reuniones ni envíes correos al cliente.\n- NO compartas información interna de la empresa ni de otros clientes.\n- NO registres el mismo lead más de una vez en la misma conversación.\n- Hacé como máximo dos preguntas por mensaje.\n- Si no sabés algo, decí que no tenés esa información y que un asesor la va a brindar.\n\n# ESCALAMIENTO\n- Si el usuario pide hablar con una persona, está molesto, plantea un reclamo o hace una consulta fuera de tu ámbito, respondé: 'Voy a derivar tu consulta a un asesor humano, que te va a contactar a la brevedad.' y no intentes resolverlo vos.\n- Si el usuario se niega a dar su email, registrá el lead igualmente con el email 'NO INFORMADO' y calificación FRÍO.\n- No tenés memoria de mensajes anteriores: cada mensaje del usuario debe resolverse en un solo turno.\n- Si el mensaje del usuario ya incluye nombre, empresa, email, necesidad y presupuesto, registrá el lead INMEDIATAMENTE con la herramienta, sin hacer preguntas adicionales ni pedir confirmación.",
+          "maxIterations": 7,
+          "returnIntermediateSteps": true
+        }
+      },
+      "id": "fefc407a-8ace-4c4d-bf1e-55577398cd08",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        272,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "3bef7309-c326-4967-b190-fa791442af2a",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        240
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "GwMuGRXU1bG9s5IB",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Registra un nuevo lead comercial como una fila en la planilla de Google Sheets de la empresa. Usá esta herramienta ÚNICAMENTE cuando se cumplan todas estas condiciones: (1) el usuario es un potencial cliente interesado en los servicios de la empresa; (2) ya obtuviste en la conversación su nombre, empresa, email, necesidad principal y presupuesto estimado (o el usuario indicó expresamente que no tiene presupuesto definido); (3) ya calificaste el lead como CALIENTE, TIBIO o FRÍO; (4) todavía no registraste a este lead en la conversación actual. NO uses esta herramienta para responder preguntas, para consultas de soporte o reclamos, ni cuando falte algún dato obligatorio: en ese caso primero pedile el dato al usuario. Nunca inventes valores para completar los campos.",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "18iAIouSMsWejtMlqm140uzMxVpmrzLij8o69FBe77B0",
+          "mode": "list",
+          "cachedResultName": "planilla",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18iAIouSMsWejtMlqm140uzMxVpmrzLij8o69FBe77B0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18iAIouSMsWejtMlqm140uzMxVpmrzLij8o69FBe77B0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+            "Nombre": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Nombre', ``, 'string') }}",
+            "Empresa": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Empresa', ``, 'string') }}",
+            "Email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Email', ``, 'string') }}",
+            "Necesidad": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Necesidad', ``, 'string') }}",
+            "Presupuesto": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Presupuesto', ``, 'string') }}",
+            "Calificacion": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Calificacion', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Empresa",
+              "displayName": "Empresa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Necesidad",
+              "displayName": "Necesidad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Presupuesto",
+              "displayName": "Presupuesto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Calificacion",
+              "displayName": "Calificacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "503d590a-59dc-427e-9c74-97365763d26c",
+      "name": "Registrar Lead en Google Sheets",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.5,
+      "position": [
+        400,
+        240
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "h81oBaXXIiy3HBcF",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "pablog.sistemas27@gmail.com",
+        "subject": "=[Observabilidad] Ejecución del Agente de Leads - {{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+        "emailType": "text",
+        "message": "=REPORTE DE OBSERVABILIDAD - AGENTE DE CALIFICACIÓN DE LEADS\n\nMensaje del usuario:\n{{ $('Chat Trigger').item.json.chatInput }}\n\nRespuesta final del agente:\n{{ $json.output }}\n\nHerramientas utilizadas: {{ $json.intermediateSteps ? $json.intermediateSteps.length : 0 }}\n\nExecution Log (pasos intermedios):\n{{ JSON.stringify($json.intermediateSteps, null, 2) }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "749b8df4-c7a6-4b36-8214-ca578d074710",
+      "name": "Log de Observabilidad (Gmail)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        624,
+        0
+      ],
+      "webhookId": "c8f2d3b1-2222-4b3c-8d4e-000000000002",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "otBoSPtIHREMKFCV",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Lead en Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Log de Observabilidad (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "94c1c39b-0407-49b8-8e1a-d11ad81b3834",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1a12f1892731c1b7ff244aa5bd2c1fd97798c52285b140a7ce48c440d419f352"
+  },
+  "nodeGroups": [],
+  "id": "JGfkmKcbGpKFSciW",
+  "tags": []
+}
